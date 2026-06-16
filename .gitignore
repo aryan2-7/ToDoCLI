@@ -3,3 +3,6 @@ __pycache__/
 
 .DS_Store
 ._
+
+*.txt
+todo.txt

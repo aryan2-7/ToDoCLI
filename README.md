@@ -39,6 +39,20 @@ Priorities: `o` (Optional), `m` (Medium), `h` (High), `u` (Urgent)
 
 Todos are stored at `~/.todos/todo.txt`.
 
+## Uninstall
+
+### via uv
+
+```bash
+uv tool uninstall todocli
+```
+
+### via pip
+
+```bash
+pip uninstall todocli
+```
+
 ## Requirements
 
 - Python 3.12+

@@ -1,4 +1,7 @@
 import click
+import os
+
+TODO_FILE = os.path.expanduser("~/.todos/todo.txt")
 
 @click.command()
 @click.option("--name", prompt="Enter your name", help="The name to say hello to.")
@@ -13,35 +16,42 @@ PRIORITIES = {"o": "Optional", "m": "Medium", "h": "High", "u": "Urgent"}
 
 @click.command()
 @click.argument("priority", type=click.Choice(PRIORITIES.keys()), default="m")
-@click.argument("todofile", type=click.Path(exists=False), required =0)
-@click.option("--name", "-n", prompt = "Enter the name of the todo item", help="The name of the todo item")
-@click.option("--description", "-d", prompt = "Enter the description of the todo item", help="The description of the todo item")
-def add(priority, todofile, name, description):
-    filename = todofile if todofile else "todo.txt"
-    with open(filename, "a+") as f:
+@click.option("--name", "-n", prompt="Enter the name of the todo item", help="The name of the todo item")
+@click.option("--description", "-d", prompt="Enter the description of the todo item", help="The description of the todo item")
+def add(priority, name, description):
+    os.makedirs(os.path.dirname(TODO_FILE), exist_ok=True)
+    with open(TODO_FILE, "a+") as f:
         f.write(f"{PRIORITIES[priority]}: {name}: {description}\n")
-    click.echo(f"Todo item added to {filename}")
-
+    click.echo(f"Todo item added to {TODO_FILE}")
 
 
 @click.command()
-@click.argument("idx", type=int, required = True)
+@click.argument("idx", type=int, required=True)
 def delete(idx):
-    with open("todo.txt", "r") as f:
-        lines = f.readlines()
-        lines.pop(idx)
-    with open("todo.txt", "w") as f:
+    try:
+        with open(TODO_FILE, "r") as f:
+            lines = f.readlines()
+    except FileNotFoundError:
+        click.echo("No todo list found. Nothing to delete.")
+        return
+    if not lines or idx < 0 or idx >= len(lines):
+        click.echo(f"Invalid index: {idx}. The list has {len(lines)} items.")
+        return
+    removed = lines.pop(idx)
+    with open(TODO_FILE, "w") as f:
         f.writelines(lines)
-    click.echo(f"Todo item {idx} deleted")
+    click.echo(f"Deleted: {removed.strip()}")
 
 
 @click.command()
 @click.option("--priority", "-p", type=click.Choice(PRIORITIES.keys()))
-@click.argument("todofile", type=click.Path(exists=True), required = 0)
-def list(priority, todofile):
-    filename = todofile if todofile is not None else "todo.txt"
-    with open(filename, "r") as f:
-        todo_list = f.readlines()
+def list(priority):
+    try:
+        with open(TODO_FILE, "r") as f:
+            todo_list = f.readlines()
+    except FileNotFoundError:
+        click.echo("No todo list found.")
+        return
     if priority is None:
         for idx, todo in enumerate(todo_list):
             click.echo(f"{idx}: {todo}")
